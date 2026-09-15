@@ -1,0 +1,23 @@
+name: gosocial
+
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_DB: social
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: adminpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql
+      - ./scripts:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d social"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+volumes:
+  db-data:
