@@ -22,6 +22,10 @@ func (u *UserStore) Create(ctx context.Context, user *User) error {
 		INSERT INTO users (username, password, email)
 		VALUES ($1, $2, $3) RETURNING id, created_at
 	`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
 	err := u.db.QueryRowContext(
 		ctx,
 		query,
@@ -35,5 +39,6 @@ func (u *UserStore) Create(ctx context.Context, user *User) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
