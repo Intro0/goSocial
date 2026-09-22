@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"fmt"
 
 	"github.com/lib/pq"
 )
@@ -32,7 +31,7 @@ type PostStore struct {
 }
 
 func (s *PostStore) GetUserFeed(ctx context.Context, userID int64, fq PaginatedFeedQuery) ([]PostWithMetaData, error) {
-	query := fmt.Sprintf(`
+	query := `
 		SELECT
 			p.id,
 			p.user_id,
@@ -49,23 +48,42 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userID int64, fq PaginatedF
 		LEFT JOIN followers f
 			ON f.follower_id = $1
 			AND f.user_id = p.user_id
-		WHERE p.user_id = $1
+		WHERE (
+			p.user_id = $1
 			OR f.follower_id IS NOT NULL
+		)
+			AND (
+				p.title ILIKE '%' || $4 || '%'
+				OR p.content ILIKE '%' || $4 || '%'
+			)
+			AND p.tags @> COALESCE($5::varchar[], '{}')
+			AND ($6 = '' OR p.created_at >= $6::timestamptz)
+			AND ($7 = '' OR p.created_at <= $7::timestamptz)
 		GROUP BY p.id, u.username
-		ORDER BY p.created_at %s
+		ORDER BY p.created_at ` + fq.Sort + `
 		LIMIT $2 OFFSET $3
-	`, fq.Sort)
+	`
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset)
+	rows, err := s.db.QueryContext(
+		ctx,
+		query,
+		userID,
+		fq.Limit,
+		fq.Offset,
+		fq.Search,
+		pq.Array(fq.Tags),
+		fq.Since,
+		fq.Until,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
 
-	var feed []PostWithMetaData
+	feed := []PostWithMetaData{}
 	for rows.Next() {
 		var p PostWithMetaData
 		err := rows.Scan(
