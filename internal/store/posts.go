@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/lib/pq"
 )
@@ -30,8 +31,8 @@ type PostStore struct {
 	db *sql.DB
 }
 
-func (s *PostStore) GetUserFeed(ctx context.Context, userID int64) ([]PostWithMetaData, error) {
-	query := `
+func (s *PostStore) GetUserFeed(ctx context.Context, userID int64, fq PaginatedFeedQuery) ([]PostWithMetaData, error) {
+	query := fmt.Sprintf(`
 		SELECT
 			p.id,
 			p.user_id,
@@ -51,13 +52,14 @@ func (s *PostStore) GetUserFeed(ctx context.Context, userID int64) ([]PostWithMe
 		WHERE p.user_id = $1
 			OR f.follower_id IS NOT NULL
 		GROUP BY p.id, u.username
-		ORDER BY p.created_at DESC;
-	`
+		ORDER BY p.created_at %s
+		LIMIT $2 OFFSET $3
+	`, fq.Sort)
 
 	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
 	defer cancel()
 
-	rows, err := s.db.QueryContext(ctx, query, userID)
+	rows, err := s.db.QueryContext(ctx, query, userID, fq.Limit, fq.Offset)
 	if err != nil {
 		return nil, err
 	}
