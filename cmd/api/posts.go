@@ -25,17 +25,6 @@ type UpdatePostPayload struct {
 	Content *string `json:"content" validate:"omitempty,max=1000"`
 }
 
-// createPostHandler godoc
-//
-// @Summary Create a post
-// @Tags posts
-// @Accept json
-// @Produce json
-// @Param payload body CreatePostPayload true "Post payload"
-// @Success 200 {object} store.Post
-// @Failure 400 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /posts/ [post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPayload
 	if err := readJSON(w, r, &payload); err != nil {
@@ -69,16 +58,6 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
-// getPostHandler godoc
-//
-// @Summary Fetch a post
-// @Tags posts
-// @Produce json
-// @Param postID path int true "Post ID"
-// @Success 200 {object} store.Post
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /posts/{postID}/ [get]
 func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 
@@ -96,15 +75,6 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// deletePostHandler godoc
-//
-// @Summary Delete a post
-// @Tags posts
-// @Param postID path int true "Post ID"
-// @Success 204
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /posts/{postID}/ [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postID")
 	id, err := strconv.ParseInt(idParam, 10, 64)
@@ -128,19 +98,6 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 
 }
 
-// updatePostHandler godoc
-//
-// @Summary Update a post
-// @Tags posts
-// @Accept json
-// @Produce json
-// @Param postID path int true "Post ID"
-// @Param payload body UpdatePostPayload true "Post payload"
-// @Success 200 {object} store.Post
-// @Failure 400 {object} map[string]string
-// @Failure 404 {object} map[string]string
-// @Failure 500 {object} map[string]string
-// @Router /posts/{postID}/ [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
 

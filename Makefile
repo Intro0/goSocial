@@ -17,9 +17,5 @@ migrate-down:
 seed:
 	@go run cmd/migrate/seed/main.go
 
-.PHONY: gen-docs
-gen-docs:
-	@go run github.com/swaggo/swag/cmd/swag@v1.16.6 init -g main.go -d cmd/api,internal/store -o docs
-
 %:
 	@:
