@@ -13,6 +13,17 @@ type userKey string
 
 const userCtx userKey = "user"
 
+// getUserHandler godoc
+//
+// @Summary Fetch a user
+// @Tags users
+// @Produce json
+// @Param userID path int true "User ID"
+// @Success 200 {object} store.User
+// @Failure 400 {object} map[string]string
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{userID}/ [get]
 func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	user := getUserFromContext(r)
 
@@ -25,6 +36,18 @@ type FollowUser struct {
 	UserID int64 `json:"user_id"`
 }
 
+// followUserHandler godoc
+//
+// @Summary Follow a user
+// @Tags users
+// @Accept json
+// @Param userID path int true "Follower user ID"
+// @Param payload body FollowUser true "Follow payload"
+// @Success 204
+// @Failure 400 {object} map[string]string
+// @Failure 409 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{userID}/follow [put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerUser := getUserFromContext(r)
 
@@ -53,6 +76,17 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 	}
 }
 
+// unfollowUserHandler godoc
+//
+// @Summary Unfollow a user
+// @Tags users
+// @Accept json
+// @Param userID path int true "User ID"
+// @Param payload body FollowUser true "Unfollow payload"
+// @Success 204
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
 	unfollowedUser := getUserFromContext(r)
 

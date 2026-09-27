@@ -10,6 +10,10 @@ import (
 
 const version = "0.0.1"
 
+// @title goSocial API
+// @version 0.0.1
+// @description API for goSocial, a social network.
+// @BasePath /v1
 func main() {
 	cfg := config{
 		addr: env.GetString("ADDR", ":8080"),
