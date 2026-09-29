@@ -37,6 +37,32 @@ type FollowUser struct {
 	UserID int64 `json:"user_id"`
 }
 
+// activateUserHandler godoc
+//
+// @Summary Activate a user
+// @Description Activate a user with an invitation token.
+// @Tags users
+// @Param token path string true "Invitation token"
+// @Success 204
+// @Failure 404 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/activate/{token} [put]
+func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Request) {
+	token := chi.URLParam(r, "token")
+
+	if err := app.store.Users.Activate(r.Context(), token); err != nil {
+		switch err {
+		case store.ErrNotFound:
+			app.notFoundResponse(w, r, err)
+		default:
+			app.internalServiceError(w, r, err)
+		}
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // followUserHandler godoc
 //
 // @Summary Follow a user
