@@ -6,6 +6,23 @@ import (
 	"github.com/Intro0/goSocial/internal/store"
 )
 
+// getUserFeedHandler godoc
+//
+// @Summary Fetch the user feed
+// @Description Fetch posts from the current development user's feed with optional filtering and pagination.
+// @Tags feed
+// @Produce json
+// @Param since query string false "Posts created at or after this time in YYYY-MM-DD HH:MM:SS format"
+// @Param until query string false "Posts created at or before this time in YYYY-MM-DD HH:MM:SS format"
+// @Param limit query int false "Maximum number of posts, from 1 to 20"
+// @Param offset query int false "Number of posts to skip"
+// @Param sort query string false "Sort order: asc or desc"
+// @Param tags query string false "Comma-separated tags"
+// @Param search query string false "Text to search for in post titles and content"
+// @Success 200 {object} map[string][]store.PostWithMetaData
+// @Failure 400 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /users/feed [get]
 func (app *application) getUserFeedHandler(w http.ResponseWriter, r *http.Request) {
 	fq := store.PaginatedFeedQuery{
 		Limit:  20,
