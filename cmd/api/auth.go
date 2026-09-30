@@ -3,8 +3,10 @@ package main
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
 	"net/http"
 
+	"github.com/Intro0/goSocial/internal/mailer"
 	"github.com/Intro0/goSocial/internal/store"
 	"github.com/google/uuid"
 )
@@ -18,6 +20,18 @@ type RegisterUserPayload struct {
 type UserWithToken struct {
 	*store.User
 	Token string `json:"token"`
+}
+
+type UserInvitationTemplateData struct {
+	Username      string
+	ActivationURL string
+}
+
+func (app *application) userInvitationTemplateData(user *store.User, token string) UserInvitationTemplateData {
+	return UserInvitationTemplateData{
+		Username:      user.Username,
+		ActivationURL: fmt.Sprintf("%s/confirm/%s", app.config.frontendURL, token),
+	}
 }
 
 // registerUserHandler godoc
@@ -68,6 +82,28 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		}
 		return
 	}
+
+	templateData := app.userInvitationTemplateData(user, plainToken)
+	isSandbox := app.config.env != "production"
+	status, err := app.mailer.Send(
+		mailer.UserWelcomeTemplate,
+		user.Username,
+		user.Email,
+		templateData,
+		isSandbox,
+	)
+	if err != nil {
+		app.logger.Errorw("send welcome email", "error", err)
+
+		if deleteErr := app.store.Users.Delete(r.Context(), user.ID); deleteErr != nil {
+			app.logger.Errorw("delete user after email failure", "user_id", user.ID, "error", deleteErr)
+		}
+
+		app.internalServiceError(w, r, err)
+		return
+	}
+
+	app.logger.Infow("welcome email sent", "status", status, "user_id", user.ID)
 
 	if err := app.jsonResponse(w, http.StatusCreated, UserWithToken{
 		User:  user,

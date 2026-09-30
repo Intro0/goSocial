@@ -21,6 +21,8 @@ require (
 	github.com/josharian/intern v1.0.0 // indirect
 	github.com/leodido/go-urn v1.5.0 // indirect
 	github.com/mailru/easyjson v0.7.6 // indirect
+	github.com/sendgrid/rest v2.6.9+incompatible // indirect
+	github.com/sendgrid/sendgrid-go v3.15.0+incompatible // indirect
 	github.com/swaggo/files/v2 v2.0.0 // indirect
 	github.com/swaggo/http-swagger/v2 v2.0.2 // indirect
 	github.com/swaggo/swag v1.16.6 // indirect

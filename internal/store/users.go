@@ -200,3 +200,23 @@ func (u *UserStore) deleteInvitations(ctx context.Context, tx *sql.Tx, userID in
 	_, err := tx.ExecContext(ctx, query, userID)
 	return err
 }
+
+func (u *UserStore) Delete(ctx context.Context, userID int64) error {
+	return withTx(u.db, ctx, func(tx *sql.Tx) error {
+		if err := u.deleteInvitations(ctx, tx, userID); err != nil {
+			return err
+		}
+
+		return u.delete(ctx, tx, userID)
+	})
+}
+
+func (u *UserStore) delete(ctx context.Context, tx *sql.Tx, userID int64) error {
+	query := `DELETE FROM users WHERE id = $1`
+
+	ctx, cancel := context.WithTimeout(ctx, QueryTimeoutDuration)
+	defer cancel()
+
+	_, err := tx.ExecContext(ctx, query, userID)
+	return err
+}
