@@ -33,10 +33,6 @@ func (app *application) getUserHandler(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-type FollowUser struct {
-	UserID int64 `json:"user_id"`
-}
-
 // activateUserHandler godoc
 //
 // @Summary Activate a user
@@ -66,29 +62,25 @@ func (app *application) activateUserHandler(w http.ResponseWriter, r *http.Reque
 // followUserHandler godoc
 //
 // @Summary Follow a user
-// @Description Create a follow relationship using the user IDs in the path and request body.
+// @Description Follow the user identified by the path.
 // @Tags users
-// @Accept json
 // @Param userID path int true "User ID"
-// @Param payload body FollowUser true "Follow payload"
 // @Success 204
-// @Failure 400 {object} map[string]string
 // @Failure 409 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{userID}/follow [put]
 func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request) {
 	followerUser := getUserFromContext(r)
 
-	// TODO: Derive the follower from authenticated user context when auth is added.
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
+	followedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 
-	if err := app.store.Followers.Follow(ctx, followerUser.ID, payload.UserID); err != nil {
+	if err := app.store.Followers.Follow(ctx, followerUser.ID, followedID); err != nil {
 		switch err {
 		case store.ErrConflict:
 			app.conflictResponse(w, r, err)
@@ -107,28 +99,24 @@ func (app *application) followUserHandler(w http.ResponseWriter, r *http.Request
 // unfollowUserHandler godoc
 //
 // @Summary Unfollow a user
-// @Description Remove a follow relationship using the user IDs in the path and request body.
+// @Description Unfollow the user identified by the path.
 // @Tags users
-// @Accept json
 // @Param userID path int true "User ID"
-// @Param payload body FollowUser true "Unfollow payload"
 // @Success 204
-// @Failure 400 {object} map[string]string
 // @Failure 500 {object} map[string]string
 // @Router /users/{userID}/unfollow [put]
 func (app *application) unfollowUserHandler(w http.ResponseWriter, r *http.Request) {
-	unfollowedUser := getUserFromContext(r)
+	followerUser := getUserFromContext(r)
 
-	// TODO: Derive the follower from authenticated user context when auth is added.
-	var payload FollowUser
-	if err := readJSON(w, r, &payload); err != nil {
+	unfollowedID, err := strconv.ParseInt(chi.URLParam(r, "userID"), 10, 64)
+	if err != nil {
 		app.badRequestResponse(w, r, err)
 		return
 	}
 
 	ctx := r.Context()
 
-	if err := app.store.Followers.Unfollow(ctx, unfollowedUser.ID, payload.UserID); err != nil {
+	if err := app.store.Followers.Unfollow(ctx, followerUser.ID, unfollowedID); err != nil {
 		app.internalServiceError(w, r, err)
 		return
 	}

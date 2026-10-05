@@ -24,6 +24,70 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/authentication/token": {
+            "post": {
+                "description": "Authenticate an active user and return a signed JWT.",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "authentication"
+                ],
+                "summary": "Create an access token",
+                "parameters": [
+                    {
+                        "description": "User credentials",
+                        "name": "payload",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/main.CreateUserTokenPayload"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            }
+                        }
+                    }
+                }
+            }
+        },
         "/authentication/user": {
             "post": {
                 "description": "Create an inactive user and return an activation token.",
@@ -504,10 +568,7 @@ const docTemplate = `{
         },
         "/users/{userID}/follow": {
             "put": {
-                "description": "Create a follow relationship using the user IDs in the path and request body.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Follow the user identified by the path.",
                 "tags": [
                     "users"
                 ],
@@ -519,29 +580,11 @@ const docTemplate = `{
                         "name": "userID",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Follow payload",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.FollowUser"
-                        }
                     }
                 ],
                 "responses": {
                     "204": {
                         "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
                     },
                     "409": {
                         "description": "Conflict",
@@ -566,10 +609,7 @@ const docTemplate = `{
         },
         "/users/{userID}/unfollow": {
             "put": {
-                "description": "Remove a follow relationship using the user IDs in the path and request body.",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "Unfollow the user identified by the path.",
                 "tags": [
                     "users"
                 ],
@@ -581,29 +621,11 @@ const docTemplate = `{
                         "name": "userID",
                         "in": "path",
                         "required": true
-                    },
-                    {
-                        "description": "Unfollow payload",
-                        "name": "payload",
-                        "in": "body",
-                        "required": true,
-                        "schema": {
-                            "$ref": "#/definitions/main.FollowUser"
-                        }
                     }
                 ],
                 "responses": {
                     "204": {
                         "description": "No Content"
-                    },
-                    "400": {
-                        "description": "Bad Request",
-                        "schema": {
-                            "type": "object",
-                            "additionalProperties": {
-                                "type": "string"
-                            }
-                        }
                     },
                     "500": {
                         "description": "Internal Server Error",
@@ -642,11 +664,21 @@ const docTemplate = `{
                 }
             }
         },
-        "main.FollowUser": {
+        "main.CreateUserTokenPayload": {
             "type": "object",
+            "required": [
+                "email",
+                "password"
+            ],
             "properties": {
-                "user_id": {
-                    "type": "integer"
+                "email": {
+                    "type": "string",
+                    "maxLength": 255
+                },
+                "password": {
+                    "type": "string",
+                    "maxLength": 72,
+                    "minLength": 3
                 }
             }
         },

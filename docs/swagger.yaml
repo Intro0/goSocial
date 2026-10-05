@@ -16,10 +16,18 @@ definitions:
     - content
     - title
     type: object
-  main.FollowUser:
+  main.CreateUserTokenPayload:
     properties:
-      user_id:
-        type: integer
+      email:
+        maxLength: 255
+        type: string
+      password:
+        maxLength: 72
+        minLength: 3
+        type: string
+    required:
+    - email
+    - password
     type: object
   main.RegisterUserPayload:
     properties:
@@ -158,6 +166,48 @@ info:
   termsOfService: http://swagger.io/terms/
   title: goSocial API
 paths:
+  /authentication/token:
+    post:
+      consumes:
+      - application/json
+      description: Authenticate an active user and return a signed JWT.
+      parameters:
+      - description: User credentials
+        in: body
+        name: payload
+        required: true
+        schema:
+          $ref: '#/definitions/main.CreateUserTokenPayload'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "401":
+          description: Unauthorized
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+      summary: Create an access token
+      tags:
+      - authentication
   /authentication/user:
     post:
       consumes:
@@ -390,31 +440,16 @@ paths:
       - users
   /users/{userID}/follow:
     put:
-      consumes:
-      - application/json
-      description: Create a follow relationship using the user IDs in the path and
-        request body.
+      description: Follow the user identified by the path.
       parameters:
       - description: User ID
         in: path
         name: userID
         required: true
         type: integer
-      - description: Follow payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.FollowUser'
       responses:
         "204":
           description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "409":
           description: Conflict
           schema:
@@ -432,31 +467,16 @@ paths:
       - users
   /users/{userID}/unfollow:
     put:
-      consumes:
-      - application/json
-      description: Remove a follow relationship using the user IDs in the path and
-        request body.
+      description: Unfollow the user identified by the path.
       parameters:
       - description: User ID
         in: path
         name: userID
         required: true
         type: integer
-      - description: Unfollow payload
-        in: body
-        name: payload
-        required: true
-        schema:
-          $ref: '#/definitions/main.FollowUser'
       responses:
         "204":
           description: No Content
-        "400":
-          description: Bad Request
-          schema:
-            additionalProperties:
-              type: string
-            type: object
         "500":
           description: Internal Server Error
           schema:

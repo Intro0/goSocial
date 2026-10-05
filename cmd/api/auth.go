@@ -5,14 +5,22 @@ import (
 	"encoding/hex"
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/Intro0/goSocial/internal/mailer"
 	"github.com/Intro0/goSocial/internal/store"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/google/uuid"
 )
 
 type RegisterUserPayload struct {
 	Username string `json:"username" validate:"required,max=100"`
+	Email    string `json:"email" validate:"required,email,max=255"`
+	Password string `json:"password" validate:"required,min=3,max=72"`
+}
+
+type CreateUserTokenPayload struct {
 	Email    string `json:"email" validate:"required,email,max=255"`
 	Password string `json:"password" validate:"required,min=3,max=72"`
 }
@@ -109,6 +117,68 @@ func (app *application) registerUserHandler(w http.ResponseWriter, r *http.Reque
 		User:  user,
 		Token: plainToken,
 	}); err != nil {
+		app.internalServiceError(w, r, err)
+	}
+}
+
+// createTokenHandler godoc
+//
+// @Summary Create an access token
+// @Description Authenticate an active user and return a signed JWT.
+// @Tags authentication
+// @Accept json
+// @Produce json
+// @Param payload body CreateUserTokenPayload true "User credentials"
+// @Success 200 {object} map[string]string
+// @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 500 {object} map[string]string
+// @Router /authentication/token [post]
+func (app *application) createTokenHandler(w http.ResponseWriter, r *http.Request) {
+	var payload CreateUserTokenPayload
+	if err := readJSON(w, r, &payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	if err := Validate.Struct(payload); err != nil {
+		app.badRequestResponse(w, r, err)
+		return
+	}
+
+	user, err := app.store.Users.GetByEmail(r.Context(), payload.Email)
+	if err != nil {
+		switch err {
+		case store.ErrNotFound:
+			app.unauthorizedErrorResponse(w, r, err)
+		default:
+			app.internalServiceError(w, r, err)
+		}
+		return
+	}
+
+	if err := user.Password.Compare(payload.Password); err != nil {
+		app.unauthorizedErrorResponse(w, r, err)
+		return
+	}
+
+	now := time.Now()
+	claims := jwt.MapClaims{
+		"sub": strconv.FormatInt(user.ID, 10),
+		"exp": now.Add(app.config.auth.token.exp).Unix(),
+		"iat": now.Unix(),
+		"nbf": now.Unix(),
+		"iss": app.config.auth.token.issuer,
+		"aud": app.config.auth.token.issuer,
+	}
+
+	token, err := app.authenticator.GenerateToken(claims)
+	if err != nil {
+		app.internalServiceError(w, r, err)
+		return
+	}
+
+	if err := app.jsonResponse(w, http.StatusOK, token); err != nil {
 		app.internalServiceError(w, r, err)
 	}
 }

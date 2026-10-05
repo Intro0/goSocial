@@ -27,6 +27,7 @@ type Storage struct {
 		Activate(context.Context, string) error
 		Delete(context.Context, int64) error
 		GetByID(context.Context, int64) (*User, error)
+		GetByEmail(context.Context, string) (*User, error)
 	}
 	Comments interface {
 		Create(context.Context, *Comment) error
