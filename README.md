@@ -42,6 +42,10 @@ Open Swagger UI at [http://localhost:3000/v1/swagger/index.html](http://localhos
 
 Registration sends an invitation email through SendGrid. Set `FROM_EMAIL` to a verified SendGrid sender address and add a `SENDGRID_API_KEY` before using the registration endpoint. In non-production environments, SendGrid sandbox mode prevents delivery.
 
+## Redis cache
+
+The next performance module will use the local [`redis-from-scratch-go`](https://github.com/Intro0/redis-from-scratch-go) server for user-profile caching. It supports the required `PING`, `GET`, and `SET ... EX` commands. Cache invalidation will require its `DEL` command first. Use database `0` with no password until that server supports `SELECT` and `AUTH`.
+
 ## Useful commands
 
 ```bash
