@@ -28,14 +28,16 @@ type UpdatePostPayload struct {
 // createPostHandler godoc
 //
 // @Summary Create a post
-// @Description Create a post for the currently hard-coded development user.
+// @Description Create a post for the authenticated user.
 // @Tags posts
 // @Accept json
 // @Produce json
 // @Param payload body CreatePostPayload true "Post payload"
 // @Success 200 {object} map[string]store.Post
 // @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
 // @Failure 500 {object} map[string]string
+// @Security ApiKeyAuth
 // @Router /posts/ [post]
 func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request) {
 	var payload CreatePostPayload
@@ -79,8 +81,10 @@ func (app *application) createPostHandler(w http.ResponseWriter, r *http.Request
 // @Produce json
 // @Param postID path int true "Post ID"
 // @Success 200 {object} map[string]store.Post
+// @Failure 401 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
+// @Security ApiKeyAuth
 // @Router /posts/{postID}/ [get]
 func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
@@ -102,11 +106,15 @@ func (app *application) getPostHandler(w http.ResponseWriter, r *http.Request) {
 // deletePostHandler godoc
 //
 // @Summary Delete a post
+// @Description Delete a post by ID.
 // @Tags posts
 // @Param postID path int true "Post ID"
 // @Success 204
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
+// @Security ApiKeyAuth
 // @Router /posts/{postID}/ [delete]
 func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request) {
 	idParam := chi.URLParam(r, "postID")
@@ -142,8 +150,11 @@ func (app *application) deletePostHandler(w http.ResponseWriter, r *http.Request
 // @Param payload body UpdatePostPayload true "Post payload"
 // @Success 200 {object} map[string]store.Post
 // @Failure 400 {object} map[string]string
+// @Failure 401 {object} map[string]string
+// @Failure 403 {object} map[string]string
 // @Failure 404 {object} map[string]string
 // @Failure 500 {object} map[string]string
+// @Security ApiKeyAuth
 // @Router /posts/{postID}/ [patch]
 func (app *application) updatePostHandler(w http.ResponseWriter, r *http.Request) {
 	post := getPostFromCtx(r)
