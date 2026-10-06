@@ -1,8 +1,6 @@
 package main
 
 import (
-	"expvar"
-	"runtime"
 	"time"
 
 	"github.com/Intro0/goSocial/internal/auth"
@@ -125,13 +123,7 @@ func main() {
 		rateLimiter:   rateLimiter,
 	}
 
-	expvar.NewString("version").Set(version)
-	expvar.Publish("database", expvar.Func(func() any {
-		return db.Stats()
-	}))
-	expvar.Publish("goroutines", expvar.Func(func() any {
-		return runtime.NumGoroutine()
-	}))
+	publishMetrics(db)
 
 	mux := app.mount()
 	if err := app.run(mux); err != nil {
