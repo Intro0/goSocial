@@ -65,7 +65,7 @@ Registration sends an invitation email through SendGrid. Set `FROM_EMAIL` to a v
 
 ## Redis cache
 
-goSocial uses the local [`redis-from-scratch-go`](https://github.com/Intro0/redis-from-scratch-go) server for user-profile caching by default. It supports the required `PING`, `GET`, and `SETEX` commands. Cache invalidation will require its `DEL` command first. Use database `0` with no password until that server supports `SELECT` and `AUTH`. You can use the official Redis image through `REDIS_IMAGE` instead.
+Docker Compose uses the local [`redis-from-scratch-go`](https://github.com/Intro0/redis-from-scratch-go) image by default. Set `REDIS_ENABLED="true"` to enable user-profile caching. The server supports the required `PING`, `GET`, and `SETEX` commands. Cache invalidation will require its `DEL` command first. Use database `0` with no password until that server supports `SELECT` and `AUTH`. You can use the official Redis image through `REDIS_IMAGE` instead.
 
 ## Useful commands
 

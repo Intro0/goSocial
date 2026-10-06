@@ -98,7 +98,8 @@ func (app *application) getUser(ctx context.Context, userID int64) (*store.User,
 
 	user, err := app.cacheStorage.Users.Get(ctx, userID)
 	if err != nil {
-		return nil, err
+		app.logger.Warnw("get user from cache", "user_id", userID, "error", err)
+		user = nil
 	}
 
 	if user == nil {
@@ -108,7 +109,7 @@ func (app *application) getUser(ctx context.Context, userID int64) (*store.User,
 		}
 
 		if err := app.cacheStorage.Users.Set(ctx, user); err != nil {
-			return nil, err
+			app.logger.Warnw("cache user", "user_id", userID, "error", err)
 		}
 	}
 

@@ -17,8 +17,12 @@ type UserStore struct {
 	client *redis.Client
 }
 
+func userKey(userID int64) string {
+	return fmt.Sprintf("user-%d", userID)
+}
+
 func (s *UserStore) Get(ctx context.Context, userID int64) (*store.User, error) {
-	cacheKey := fmt.Sprintf("user-%d", userID)
+	cacheKey := userKey(userID)
 
 	data, err := s.client.Get(ctx, cacheKey).Result()
 	if errors.Is(err, redis.Nil) {
@@ -37,7 +41,7 @@ func (s *UserStore) Get(ctx context.Context, userID int64) (*store.User, error) 
 }
 
 func (s *UserStore) Set(ctx context.Context, user *store.User) error {
-	cacheKey := fmt.Sprintf("user-%d", user.ID)
+	cacheKey := userKey(user.ID)
 
 	data, err := json.Marshal(user)
 	if err != nil {
