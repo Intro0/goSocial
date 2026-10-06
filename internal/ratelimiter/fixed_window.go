@@ -11,6 +11,7 @@ type FixedWindowLimiter struct {
 	limit       int
 	window      time.Duration
 	nextCleanup time.Time
+	now         func() time.Time
 }
 
 type clientWindow struct {
@@ -23,11 +24,12 @@ func NewFixedWindowLimiter(limit int, window time.Duration) *FixedWindowLimiter 
 		clients: make(map[string]clientWindow),
 		limit:   limit,
 		window:  window,
+		now:     time.Now,
 	}
 }
 
 func (l *FixedWindowLimiter) Allow(clientID string) (bool, time.Duration) {
-	now := time.Now()
+	now := l.now()
 
 	l.mu.Lock()
 	defer l.mu.Unlock()
