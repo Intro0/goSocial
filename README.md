@@ -27,6 +27,10 @@ export DB_ADDR="postgres://admin:adminpassword@localhost/social?sslmode=disable"
 export FRONTEND_URL=""
 export FROM_EMAIL=""
 export SENDGRID_API_KEY=""
+export REDIS_ADDR="localhost:6380"
+export REDIS_PASSWORD=""
+export REDIS_DB="0"
+export REDIS_ENABLED="false"
 ```
 
 Then run the migrations and start the API:

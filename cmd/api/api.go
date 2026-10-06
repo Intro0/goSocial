@@ -31,6 +31,14 @@ type config struct {
 	frontendURL string
 	mail        mailConfig
 	auth        authConfig
+	redis       redisConfig
+}
+
+type redisConfig struct {
+	addr     string
+	password string
+	db       int
+	enabled  bool
 }
 
 type authConfig struct {
