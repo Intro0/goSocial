@@ -7,6 +7,7 @@ import (
 
 	"github.com/Intro0/goSocial/internal/auth"
 	"github.com/Intro0/goSocial/internal/store"
+	"github.com/Intro0/goSocial/internal/store/cache"
 	"go.uber.org/zap"
 )
 
@@ -16,6 +17,7 @@ func newTestApplication(t *testing.T, cfg config) *application {
 	return &application{
 		config:        cfg,
 		store:         store.NewMockStorage(),
+		cacheStorage:  cache.NewMockStorage(),
 		logger:        zap.NewNop().Sugar(),
 		authenticator: &auth.TestAuthenticator{},
 	}
