@@ -73,3 +73,9 @@ func (app *application) unauthorizedBasicErrorResponse(w http.ResponseWriter, r 
 	w.Header().Set("WWW-Authenticate", `Basic realm="restricted", charset="UTF-8"`)
 	writeJSONError(w, http.StatusUnauthorized, "unauthorized")
 }
+
+func (app *application) rateLimitExceededResponse(w http.ResponseWriter, r *http.Request) {
+	app.logger.Warnw("rate limit exceeded", "method", r.Method, "path", r.URL.Path)
+
+	writeJSONError(w, http.StatusTooManyRequests, "rate limit exceeded")
+}
