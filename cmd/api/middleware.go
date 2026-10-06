@@ -4,11 +4,13 @@ import (
 	"context"
 	"encoding/base64"
 	"fmt"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/Intro0/goSocial/internal/store"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -127,6 +129,23 @@ func (app *application) BasicAuthMiddleware(next http.Handler) http.Handler {
 		if username != app.config.auth.basic.user || password != app.config.auth.basic.pass {
 			app.unauthorizedBasicErrorResponse(w, r, fmt.Errorf("invalid basic auth credentials"))
 			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
+}
+
+func (app *application) RateLimiterMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if app.config.rateLimiter.Enabled {
+			clientID := middleware.GetClientIP(r.Context())
+			allowed, retryAfter := app.rateLimiter.Allow(clientID)
+			if !allowed {
+				retryAfterSeconds := max(1, int(math.Ceil(retryAfter.Seconds())))
+				w.Header().Set("Retry-After", strconv.Itoa(retryAfterSeconds))
+				app.rateLimitExceededResponse(w, r)
+				return
+			}
 		}
 
 		next.ServeHTTP(w, r)

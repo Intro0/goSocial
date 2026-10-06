@@ -13,6 +13,7 @@ import (
 	"github.com/Intro0/goSocial/docs"
 	"github.com/Intro0/goSocial/internal/auth"
 	"github.com/Intro0/goSocial/internal/mailer"
+	"github.com/Intro0/goSocial/internal/ratelimiter"
 	"github.com/Intro0/goSocial/internal/store"
 	"github.com/Intro0/goSocial/internal/store/cache"
 	"github.com/go-chi/chi/v5"
@@ -28,6 +29,7 @@ type application struct {
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
+	rateLimiter   ratelimiter.Limiter
 }
 
 type config struct {
@@ -39,6 +41,7 @@ type config struct {
 	mail        mailConfig
 	auth        authConfig
 	redis       redisConfig
+	rateLimiter ratelimiter.Config
 }
 
 type redisConfig struct {
@@ -86,6 +89,7 @@ func (app *application) mount() http.Handler {
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.ClientIPFromRemoteAddr)
+	r.Use(app.RateLimiterMiddleware)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 
