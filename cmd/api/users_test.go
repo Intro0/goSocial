@@ -53,4 +53,18 @@ func TestGetUser(t *testing.T) {
 		checkResponseCode(t, http.StatusOK, rr.Code)
 		mockCacheStore.AssertExpectations(t)
 	})
+
+	t.Run("does not use the cache when Redis is disabled", func(t *testing.T) {
+		app := newTestApplication(t, config{})
+		mux := app.mount()
+		mockCacheStore := app.cacheStorage.Users.(*cache.MockUserStore)
+
+		req := httptest.NewRequest(http.MethodGet, "/v1/users/1/", nil)
+		req.Header.Set("Authorization", "Bearer "+testToken)
+		rr := executeRequest(req, mux)
+
+		checkResponseCode(t, http.StatusOK, rr.Code)
+		mockCacheStore.AssertNotCalled(t, "Get")
+		mockCacheStore.AssertNotCalled(t, "Set")
+	})
 }
