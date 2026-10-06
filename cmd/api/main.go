@@ -14,7 +14,7 @@ import (
 	"go.uber.org/zap"
 )
 
-const version = "0.0.1"
+var version = "development"
 
 // @title goSocial API
 // @description API for goSocial, a social network for gophers.
