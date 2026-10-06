@@ -7,14 +7,12 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func NewMockStorage() Storage {
-	return Storage{
-		Users: &MockUserStore{},
-	}
-}
-
 type MockUserStore struct {
 	mock.Mock
+}
+
+func NewMockUserStore() *MockUserStore {
+	return &MockUserStore{}
 }
 
 func (m *MockUserStore) Get(_ context.Context, userID int64) (*store.User, error) {
