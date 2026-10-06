@@ -123,6 +123,8 @@ func main() {
 		rateLimiter:   rateLimiter,
 	}
 
+	publishMetrics(db)
+
 	mux := app.mount()
 	if err := app.run(mux); err != nil {
 		logger.Fatal(err)
