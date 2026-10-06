@@ -7,6 +7,10 @@ build:
 	@mkdir -p bin
 	@go build -trimpath -ldflags "-X main.version=$(VERSION)" -o bin/api ./cmd/api
 
+.PHONY: docker-build
+docker-build:
+	@docker build --build-arg VERSION=$(VERSION) -t gosocial:$(VERSION) .
+
 .PHONY: test
 test:
 	@go test -v ./...
