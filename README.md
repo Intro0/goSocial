@@ -14,8 +14,23 @@ A Go API for a small social app built with PostgreSQL, Chi, Swagger, Zap, bcrypt
 
 You need Go, Docker, and the [`migrate`](https://github.com/golang-migrate/migrate) CLI.
 
+Build the local Redis image once from the companion repository:
+
+```bash
+git clone https://github.com/Intro0/redis-from-scratch-go ../redis-from-scratch-go
+docker build -t redis-from-scratch-go:local ../redis-from-scratch-go
+```
+
+Then start PostgreSQL and Redis:
+
 ```bash
 docker compose up -d
+```
+
+To use the official Redis image instead of the local custom server:
+
+```bash
+REDIS_IMAGE=redis:7-alpine docker compose up -d
 ```
 
 Create a local `.envrc` file:
@@ -33,6 +48,8 @@ export REDIS_DB="0"
 export REDIS_ENABLED="false"
 ```
 
+Set `REDIS_ENABLED="true"` to use Redis for user-profile caching.
+
 Then run the migrations and start the API:
 
 ```bash
@@ -48,7 +65,7 @@ Registration sends an invitation email through SendGrid. Set `FROM_EMAIL` to a v
 
 ## Redis cache
 
-The next performance module will use the local [`redis-from-scratch-go`](https://github.com/Intro0/redis-from-scratch-go) server for user-profile caching. It supports the required `PING`, `GET`, and `SET ... EX` commands. Cache invalidation will require its `DEL` command first. Use database `0` with no password until that server supports `SELECT` and `AUTH`.
+goSocial uses the local [`redis-from-scratch-go`](https://github.com/Intro0/redis-from-scratch-go) server for user-profile caching by default. It supports the required `PING`, `GET`, and `SETEX` commands. Cache invalidation will require its `DEL` command first. Use database `0` with no password until that server supports `SELECT` and `AUTH`. You can use the official Redis image through `REDIS_IMAGE` instead.
 
 ## Useful commands
 
