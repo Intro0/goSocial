@@ -18,6 +18,7 @@ import (
 	"github.com/Intro0/goSocial/internal/store/cache"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
 	"go.uber.org/zap"
 )
@@ -33,15 +34,16 @@ type application struct {
 }
 
 type config struct {
-	addr        string
-	db          dbConfig
-	env         string
-	apiURL      string
-	frontendURL string
-	mail        mailConfig
-	auth        authConfig
-	redis       redisConfig
-	rateLimiter ratelimiter.Config
+	addr              string
+	db                dbConfig
+	env               string
+	apiURL            string
+	frontendURL       string
+	corsAllowedOrigin string
+	mail              mailConfig
+	auth              authConfig
+	redis             redisConfig
+	rateLimiter       ratelimiter.Config
 }
 
 type redisConfig struct {
@@ -89,6 +91,14 @@ func (app *application) mount() http.Handler {
 
 	r.Use(middleware.RequestID)
 	r.Use(middleware.ClientIPFromRemoteAddr)
+	r.Use(cors.Handler(cors.Options{
+		AllowedOrigins:   []string{app.config.corsAllowedOrigin},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: false,
+		MaxAge:           300,
+	}))
 	r.Use(app.RateLimiterMiddleware)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
