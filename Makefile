@@ -1,5 +1,11 @@
 include .envrc
 MIGRATIONS_PATH = ./cmd/migrate/migrations
+VERSION ?= $(shell git describe --tags --always --dirty)
+
+.PHONY: build
+build:
+	@mkdir -p bin
+	@go build -trimpath -ldflags "-X main.version=$(VERSION)" -o bin/api ./cmd/api
 
 .PHONY: test
 test:
