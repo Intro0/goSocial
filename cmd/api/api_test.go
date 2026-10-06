@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"strconv"
 	"testing"
 	"time"
 
@@ -64,8 +65,14 @@ func TestRateLimiterMiddleware(t *testing.T) {
 				response.Body.Close()
 
 				checkResponseCode(t, expectedStatus, response.StatusCode)
-				if expectedStatus == http.StatusTooManyRequests && response.Header.Get("Retry-After") == "" {
-					t.Errorf("request %d did not include Retry-After", request+1)
+				if expectedStatus == http.StatusTooManyRequests {
+					retryAfter, err := strconv.Atoi(response.Header.Get("Retry-After"))
+					if err != nil {
+						t.Errorf("request %d Retry-After = %q, want an integer", request+1, response.Header.Get("Retry-After"))
+					}
+					if retryAfter < 1 || retryAfter > int(cfg.rateLimiter.TimeFrame.Seconds()) {
+						t.Errorf("request %d Retry-After = %d, want 1 through %d", request+1, retryAfter, int(cfg.rateLimiter.TimeFrame.Seconds()))
+					}
 				}
 			}
 		})
