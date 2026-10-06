@@ -9,6 +9,7 @@ import (
 	"github.com/Intro0/goSocial/internal/auth"
 	"github.com/Intro0/goSocial/internal/mailer"
 	"github.com/Intro0/goSocial/internal/store"
+	"github.com/Intro0/goSocial/internal/store/cache"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	httpSwagger "github.com/swaggo/http-swagger/v2"
@@ -18,6 +19,7 @@ import (
 type application struct {
 	config        config
 	store         store.Storage
+	cacheStorage  cache.Storage
 	logger        *zap.SugaredLogger
 	mailer        mailer.Client
 	authenticator auth.Authenticator
