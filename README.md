@@ -59,6 +59,19 @@ go run ./cmd/api
 
 Open Swagger UI at [http://localhost:3000/v1/swagger/index.html](http://localhost:3000/v1/swagger/index.html).
 
+## Build a container image
+
+Build the API as a small Linux container image:
+
+```bash
+make docker-build
+```
+
+The image is tagged with the current Git tag or commit. It receives its runtime
+configuration through environment variables, so run it with the database, Redis,
+and secrets appropriate to its environment. Docker Compose remains for local
+PostgreSQL and Redis while Air runs the API during development.
+
 ## Email setup
 
 Registration sends an invitation email through SendGrid. Set `FROM_EMAIL` to a verified SendGrid sender address and add a `SENDGRID_API_KEY` before using the registration endpoint. In non-production environments, SendGrid sandbox mode prevents delivery.
