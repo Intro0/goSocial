@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"net/http/httptest"
+	"strings"
 	"testing"
 )
 
@@ -34,5 +35,21 @@ func TestCORSRejectsUnconfiguredOrigin(t *testing.T) {
 	response := executeRequest(req, app.mount())
 	if allowedOrigin := response.Header().Get("Access-Control-Allow-Origin"); allowedOrigin != "" {
 		t.Errorf("Access-Control-Allow-Origin = %q, want empty", allowedOrigin)
+	}
+}
+
+func TestCORSAllowsPatchPreflight(t *testing.T) {
+	cfg := config{
+		corsAllowedOrigin: "http://localhost:5174",
+	}
+	app, _ := newTestApplication(t, cfg)
+
+	req := httptest.NewRequest(http.MethodOptions, "/v1/posts/1/", nil)
+	req.Header.Set("Origin", cfg.corsAllowedOrigin)
+	req.Header.Set("Access-Control-Request-Method", http.MethodPatch)
+
+	response := executeRequest(req, app.mount())
+	if allowedMethods := response.Header().Get("Access-Control-Allow-Methods"); !strings.Contains(allowedMethods, http.MethodPatch) {
+		t.Errorf("Access-Control-Allow-Methods = %q, want it to contain %q", allowedMethods, http.MethodPatch)
 	}
 }
