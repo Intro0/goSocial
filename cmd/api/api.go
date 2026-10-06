@@ -1,8 +1,13 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/Intro0/goSocial/docs"
@@ -139,7 +144,40 @@ func (app *application) run(handler http.Handler) error {
 		IdleTimeout:  time.Minute,
 	}
 
+	shutdown := app.shutdownOnSignal(srv)
+
 	app.logger.Infow("server started", "addr", app.config.addr, "env", app.config.env)
 
-	return srv.ListenAndServe()
+	err := srv.ListenAndServe()
+	if !errors.Is(err, http.ErrServerClosed) {
+		return err
+	}
+
+	if err := <-shutdown; err != nil {
+		return err
+	}
+
+	app.logger.Infow("server stopped", "addr", app.config.addr, "env", app.config.env)
+
+	return nil
+}
+
+func (app *application) shutdownOnSignal(srv *http.Server) <-chan error {
+	shutdown := make(chan error, 1)
+
+	go func() {
+		signals := make(chan os.Signal, 1)
+		signal.Notify(signals, syscall.SIGINT, syscall.SIGTERM)
+		defer signal.Stop(signals)
+
+		receivedSignal := <-signals
+		app.logger.Infow("signal caught", "signal", receivedSignal.String())
+
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		defer cancel()
+
+		shutdown <- srv.Shutdown(ctx)
+	}()
+
+	return shutdown
 }
